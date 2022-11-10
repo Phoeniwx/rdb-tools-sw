@@ -92,6 +92,10 @@ namespace RDBCli
                 {
                     res = ">7d";
                 }
+                else if (hour >= 8760)
+                {
+                    res = ">1y";
+                }
             }
             else if (exp == 0)
             {

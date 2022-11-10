@@ -12,22 +12,24 @@ namespace RDBCli
 
         private PriorityQueue<Record, ulong> _largestRecords;
         private PriorityQueue<PrefixRecord, PrefixRecord> _largestKeyPrefixes;
+        private PriorityQueue<Record, ulong> _expiryRecords;
         private PriorityQueue<StreamsRecord, ulong> _largestStreams;
         private Dictionary<string, TypeKeyValue> _keyPrefix;
         private Dictionary<string, CommonStatValue> _typeDict;
         private Dictionary<string, CommonStatValue> _expiryDict;
-
         private readonly BlockingCollection<AnalysisRecord> _records;
 
         public RdbDataCounter(BlockingCollection<AnalysisRecord> records, string separators = "")
         {
             this._records = records;
             this._largestRecords = new PriorityQueue<Record, ulong>();
+            this._expiryRecords = new PriorityQueue<Record, ulong>();
             this._largestStreams = new PriorityQueue<StreamsRecord, ulong>();
             this._largestKeyPrefixes = new PriorityQueue<PrefixRecord, PrefixRecord>(PrefixRecord.Comparer);
             this._keyPrefix = new Dictionary<string, TypeKeyValue>();
             this._typeDict = new Dictionary<string, CommonStatValue>();
             this._expiryDict = new Dictionary<string, CommonStatValue>();
+
 
             if (!string.IsNullOrWhiteSpace(separators))
             {
@@ -49,7 +51,7 @@ namespace RDBCli
                             this.CountLargestEntries(item.Record, 500);
                             this.CounteByType(item.Record);
                             this.CountByKeyPrefix(item.Record);
-                            this.CountExpiry(item.Record);
+                            this.CountExpiry(item.Record, 500);
                             this.CountStreams(item.StreamsRecord, 500);
                         }
                         else
@@ -88,6 +90,21 @@ namespace RDBCli
                 .ToList();
         }
 
+        public List<Record> GetLongestExpiryRecords(int num = 100) {
+            var items = _expiryRecords.UnorderedItems
+                .OrderByDescending(x => x.Priority)
+                .Select(x => x.Element)
+                .ToList();
+            List<Record> res = new List<Record>();
+            foreach(Record record in items) {
+                if (record.Expiry==0 && res.Count>=num/2) {
+                    continue;
+                }
+                res.Add(record);
+            }
+            return res;
+        }
+
         public List<TypeRecord> GetTypeRecords()
         {
             return _typeDict
@@ -112,11 +129,22 @@ namespace RDBCli
                 .ToList();
         }
 
-        private void CountExpiry(Record item)
+        private void CountExpiry(Record item, int num)
         {
             var key = CommonHelper.GetExpireString(item.Expiry);
 
             InitOrAddStat(this._expiryDict, key, item.Bytes);
+            if (key == "Permanet" && this._expiryDict[key].Num >= (ulong)num/2) {
+                return;
+            }
+            if (key == "Permanet") {
+                _expiryRecords.Enqueue(item, ulong.MaxValue);
+            } else {
+                _expiryRecords.Enqueue(item, (ulong)item.Expiry);
+            }
+            if (_expiryRecords.Count > num) {
+                _ = _expiryRecords.Dequeue();
+            }
         }
 
         private void CalcuLargestKeyPrefix(int num)

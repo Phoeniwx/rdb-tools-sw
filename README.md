@@ -11,6 +11,11 @@ It consists of two parts:
 
 ## rdb-cli
 
+### build
+```
+dotnet publish src/RDBCli -r linux-x64 -c Release --self-contained /p:PublishSingleFile=true /p:PublishTrimmed=true 
+```
+
 ### Install
 
 1. Download the package from the [latest stable release](https://github.com/catcherwong/rdb-tools/releases).

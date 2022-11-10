@@ -15,6 +15,7 @@ namespace RDBCli.Commands
         private static Option<string> _outputTypeOption = CommonCLIOptions.OutputTypeOption();
         private static Option<int> _topPrefixCountOption = CommonCLIOptions.TopPrefixCountOption();
         private static Option<int> _topBigKeyCountOption = CommonCLIOptions.TopBigKeyCountOption();
+        private static Option<int> _topExpiryKeyCountOption = CommonCLIOptions.TopExpiryCountOption();
         private static Option<List<int>> _databasesOption = CommonCLIOptions.DBsOption();
         private static Option<List<string>> _typesOption = CommonCLIOptions.TypesOption();
         private static Option<List<string>> _keyPrefixesOption = CommonCLIOptions.KeyPrefixesOption();
@@ -28,6 +29,7 @@ namespace RDBCli.Commands
             this.AddOption(_outputTypeOption);
             this.AddOption(_topPrefixCountOption);
             this.AddOption(_topBigKeyCountOption);
+            this.AddOption(_topExpiryKeyCountOption);
             this.AddOption(_databasesOption);
             this.AddOption(_typesOption);
             this.AddOption(_keyPrefixesOption);
@@ -72,6 +74,7 @@ namespace RDBCli.Commands
             var typeRecords = counter.GetTypeRecords();
             var expiryInfo = counter.GetExpiryInfo();
             var streamRecords = counter.GetStreamRecords(); 
+            var longestExpiryRecords = counter.GetLongestExpiryRecords(options.TopExpiryCount);
 
             var dict = MemoryAnslysisResult.BuildBasicFromRdbDataInfo(rdbDataInfo);
             dict.typeRecords = typeRecords;
@@ -79,6 +82,7 @@ namespace RDBCli.Commands
             dict.largestRecords = largestRecords;
             dict.expiryInfo = expiryInfo;
             dict.largestStreams = streamRecords;
+            dict.longestExpirytRecords = longestExpiryRecords;
 
             var path = WriteFile(dict, options.Output, options.OutputType);
 
@@ -149,6 +153,7 @@ namespace RDBCli.Commands
             public string OutputType { get; set; }
             public int TopPrefixCount { get; set; }
             public int TopBigKeyCount { get; set; }
+            public int TopExpiryCount { get; set; }
             public RDBParser.ParserFilter ParserFilter { get; set; }
             public string Separators { get; set; }
 
@@ -159,6 +164,7 @@ namespace RDBCli.Commands
                 var outputType = context.ParseResult.GetValueForOption<string>(_outputTypeOption);
                 var pc = context.ParseResult.GetValueForOption<int>(_topPrefixCountOption);
                 var bc = context.ParseResult.GetValueForOption<int>(_topBigKeyCountOption);
+                var ec = context.ParseResult.GetValueForOption<int>(_topExpiryKeyCountOption);
                 var databases = context.ParseResult.GetValueForOption<List<int>>(_databasesOption);
                 var types = context.ParseResult.GetValueForOption<List<string>>(_typesOption);
                 var keyPrefixes = context.ParseResult.GetValueForOption<List<string>>(_keyPrefixesOption);
@@ -178,6 +184,7 @@ namespace RDBCli.Commands
                     OutputType = outputType,
                     TopBigKeyCount = bc,
                     TopPrefixCount = pc,
+                    TopExpiryCount = ec,
                     ParserFilter = parseFilter,
                     Separators = sep
                 };
@@ -195,6 +202,7 @@ namespace RDBCli.Commands
         public long redisBits { get; set; }
         public List<TypeRecord> typeRecords { get; set; }
         public List<Record> largestRecords { get; set; }
+        public List<Record> longestExpirytRecords { get; set; }
         public List<PrefixRecord> largestKeyPrefix { get; set; }
         public List<ExpiryRecord> expiryInfo { get; set; }
         public List<FunctionsRecord> functions { get; set; }
@@ -287,6 +295,23 @@ namespace RDBCli.Commands
             {
                 var c = x.GetValueOrDefault<int>();
                 if (c > 200) x.ErrorMessage = "The number can not greater than 200!!";
+            });
+
+            return option;
+        }
+
+        public static Option<int> TopExpiryCountOption()
+        {
+            Option<int> option =
+                new Option<int>(
+                    aliases: new string[] { "--top-expiry", "-te" },
+                    getDefaultValue: () => 100,
+                    description: "The number of top expiry keys.");
+        
+            option.AddValidator(x =>
+            {
+                var c = x.GetValueOrDefault<int>();
+                if (c > 500) x.ErrorMessage = "The number can not greater than 500!!";
             });
 
             return option;
