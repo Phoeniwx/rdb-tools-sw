@@ -208,10 +208,10 @@ namespace RDBCli
                 sepIdx = span.IndexOfAny(_separators);
             }
 
-            for (int i = 0; i < res.Count; i++)
-            {
-                res[i] = res[i].TrimEnd(_separators);
-            }
+            // for (int i = 0; i < res.Count; i++)
+            // {
+            //     res[i] = res[i].TrimEnd(_separators);
+            // }
 
             return res.Distinct().ToList();
         }
