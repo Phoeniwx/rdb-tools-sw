@@ -88,7 +88,7 @@ namespace RDBCli
                 {
                     res = "3~7d";
                 }
-                else if (hour >= 168)
+                else if (hour >= 168 && hour < 8760)
                 {
                     res = ">7d";
                 }

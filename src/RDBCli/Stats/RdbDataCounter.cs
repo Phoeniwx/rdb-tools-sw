@@ -19,6 +19,8 @@ namespace RDBCli
         private Dictionary<string, CommonStatValue> _expiryDict;
         private readonly BlockingCollection<AnalysisRecord> _records;
 
+        private uint _zeroCount;
+
         public RdbDataCounter(BlockingCollection<AnalysisRecord> records, string separators = "")
         {
             this._records = records;
@@ -29,6 +31,7 @@ namespace RDBCli
             this._keyPrefix = new Dictionary<string, TypeKeyValue>();
             this._typeDict = new Dictionary<string, CommonStatValue>();
             this._expiryDict = new Dictionary<string, CommonStatValue>();
+            this._zeroCount = 0;
 
 
             if (!string.IsNullOrWhiteSpace(separators))
@@ -97,9 +100,14 @@ namespace RDBCli
                 .ToList();
             List<Record> res = new List<Record>();
             foreach(Record record in items) {
+                if (res.Count>=num) {
+                    break;
+                }
+                // System.Console.WriteLine(record.Expiry);
                 if (record.Expiry==0 && res.Count>=num/2) {
                     continue;
                 }
+                record.FieldOfLargestElem = null;
                 res.Add(record);
             }
             return res;
@@ -132,13 +140,15 @@ namespace RDBCli
         private void CountExpiry(Record item, int num)
         {
             var key = CommonHelper.GetExpireString(item.Expiry);
-
+            
             InitOrAddStat(this._expiryDict, key, item.Bytes);
-            if (key == "Permanet" && this._expiryDict[key].Num >= (ulong)num/2) {
+            if (key == "Permanent" && this._zeroCount >= num/2) {
                 return;
             }
-            if (key == "Permanet") {
+            
+            if (key == "Permanent") {
                 _expiryRecords.Enqueue(item, ulong.MaxValue);
+                ++_zeroCount;
             } else {
                 _expiryRecords.Enqueue(item, (ulong)item.Expiry);
             }
@@ -245,7 +255,10 @@ namespace RDBCli
         }
 
         private void CountLargestEntries(Record record, int num)
-        {
+        {   
+            if (record.FieldOfLargestElem!=null && record.FieldOfLargestElem.Length >= 4096) {
+                record.FieldOfLargestElem = record.FieldOfLargestElem.Substring(0, 4096);
+            }
             _largestRecords.Enqueue(record, record.Bytes);
 
             if (_largestRecords.Count > num)
