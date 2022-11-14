@@ -50,7 +50,10 @@ namespace RDBCli
                     try
                     {
                         if (_records.TryTake(out var item))
-                        {
+                        {   
+                            if (item.Record.LenOfLargestElem==item.Record.NumOfElem) {
+                                item.Record.NumOfElem = 1;
+                            }
                             this.CountLargestEntries(item.Record, 500);
                             this.CounteByType(item.Record);
                             this.CountByKeyPrefix(item.Record);

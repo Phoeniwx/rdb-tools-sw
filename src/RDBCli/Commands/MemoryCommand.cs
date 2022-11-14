@@ -199,6 +199,8 @@ namespace RDBCli.Commands
         public int count { get; set; }
         public int rdbVer { get; set; }
         public string redisVer { get; set; }
+        public string clusterName {get; set;}
+        public string groupName {get; set;}
         public long redisBits { get; set; }
         public List<TypeRecord> typeRecords { get; set; }
         public List<Record> largestRecords { get; set; }
@@ -219,6 +221,8 @@ namespace RDBCli.Commands
                 redisVer = string.IsNullOrWhiteSpace(rdbDataInfo.RedisVer) ? CommonHelper.GetFuzzyRedisVersion(rdbDataInfo.RdbVer) : rdbDataInfo.RedisVer,
                 redisBits = rdbDataInfo.RedisBits,
                 functions = rdbDataInfo.Functions,
+                clusterName = "Unknown",
+                groupName = "Unknown",
             };
 
             return result;
