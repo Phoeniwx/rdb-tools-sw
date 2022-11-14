@@ -25,11 +25,14 @@ namespace RDBCli.Callbacks
             var keyStr = System.Text.Encoding.UTF8.GetString(key);
             if (keyStr.Equals("used-mem"))
             {
-                var mem = System.Text.Encoding.UTF8.GetString(value);
-                if (long.TryParse(mem, out var usedMem))
-                {
-                    _rdbDataInfo.UsedMem = usedMem;
+                if (value.Length==4) {
+                    _rdbDataInfo.UsedMem = System.BitConverter.ToInt32(value);
                 }
+                // var mem = System.Text.Encoding.UTF8.GetString(value);
+                // if (long.TryParse(mem, out var usedMem))
+                // {
+                //     _rdbDataInfo.UsedMem = usedMem;
+                // }
             }
             else if (keyStr.Equals("redis-ver"))
             {
@@ -37,19 +40,31 @@ namespace RDBCli.Callbacks
             }
             else if (keyStr.Equals("redis-bits"))
             {
-                var bits = System.Text.Encoding.UTF8.GetString(value);
-                if (long.TryParse(bits, out var redisBits))
-                {
-                    _rdbDataInfo.RedisBits = redisBits;
+                if (value.Length==1) {
+                    var temp = new List<byte>(value);
+                    temp.Add(0);temp.Add(0);temp.Add(0);
+                    _rdbDataInfo.RedisBits = System.BitConverter.ToInt32(temp.ToArray());
                 }
+
+                // var bits = System.Text.Encoding.UTF8.GetString(value);
+                // if (long.TryParse(bits, out var redisBits))
+                // {
+                //     _rdbDataInfo.RedisBits = redisBits;
+                // }
             }
             else if (keyStr.Equals("ctime"))
             {
-                var time = System.Text.Encoding.UTF8.GetString(value);
-                if (long.TryParse(time, out var ctime))
-                {
-                    _rdbDataInfo.CTime = ctime;
+                
+                if (value.Length==4) {
+                    var ctime = System.BitConverter.ToInt32(value);
+                    _rdbDataInfo.CTime = ((long) ctime) * 1000;
                 }
+                // var time = System.Text.Encoding.UTF8.GetString(value);
+                // if (long.TryParse(time, out var ctime))
+                // {
+                //     System.Console.WriteLine(ctime);
+                //     _rdbDataInfo.CTime = ctime;
+                // }
             }
         }
 
