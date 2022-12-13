@@ -20,6 +20,7 @@ namespace RDBCli.Commands
         private static Option<List<string>> _typesOption = CommonCLIOptions.TypesOption();
         private static Option<List<string>> _keyPrefixesOption = CommonCLIOptions.KeyPrefixesOption();
         private static Option<string> _separatorsOption = CommonCLIOptions.SeparatorsOption();
+        private static Option<int> _sepPrefixCountOption = CommonCLIOptions.SepPrefixCountOption();
         private static Argument<string> _fileArg = CommonCLIArguments.FileArgument();
 
         public MemoryCommand()
@@ -34,6 +35,7 @@ namespace RDBCli.Commands
             this.AddOption(_typesOption);
             this.AddOption(_keyPrefixesOption);
             this.AddOption(_separatorsOption);
+            this.AddOption(_sepPrefixCountOption);
             this.AddArgument(_fileArg);
 
             this.SetHandler((InvocationContext context) =>
@@ -50,7 +52,7 @@ namespace RDBCli.Commands
             var cb = new clicb.MemoryCallback();
             var rdbDataInfo = cb.GetRdbDataInfo();
 
-            var counter = new RdbDataCounter(rdbDataInfo.Records, options.Separators);
+            var counter = new RdbDataCounter(rdbDataInfo.Records, options.Separators, options.SepPrefixCount);
             var task = counter.Count();
 
             console.WriteLine($"");
@@ -156,6 +158,7 @@ namespace RDBCli.Commands
             public int TopExpiryCount { get; set; }
             public RDBParser.ParserFilter ParserFilter { get; set; }
             public string Separators { get; set; }
+            public int SepPrefixCount { get; set; }
 
             public static CommandOptions FromContext(InvocationContext context)
             {
@@ -169,6 +172,7 @@ namespace RDBCli.Commands
                 var types = context.ParseResult.GetValueForOption<List<string>>(_typesOption);
                 var keyPrefixes = context.ParseResult.GetValueForOption<List<string>>(_keyPrefixesOption);
                 var sep = context.ParseResult.GetValueForOption<string>(_separatorsOption);
+                var sepPrefixCount = context.ParseResult.GetValueForOption<int>(_sepPrefixCountOption);
 
                 var parseFilter = new RDBParser.ParserFilter()
                 {
@@ -186,7 +190,8 @@ namespace RDBCli.Commands
                     TopPrefixCount = pc,
                     TopExpiryCount = ec,
                     ParserFilter = parseFilter,
-                    Separators = sep
+                    Separators = sep,
+                    SepPrefixCount = sepPrefixCount,
                 };
             }
         }
@@ -358,6 +363,16 @@ namespace RDBCli.Commands
                 new Option<string>(
                     aliases: new string[] { "--separators" },
                     description: "The separators of redis key prefix.");
+
+            return option;
+        }
+
+        public static Option<int> SepPrefixCountOption()
+        {
+            Option<int> option =
+                new Option<int>(
+                    aliases: new string[] { "--sep-count" },
+                    description: "The count of separating a key to prefix.");
 
             return option;
         }
