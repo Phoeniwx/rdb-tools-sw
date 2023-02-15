@@ -262,6 +262,8 @@ namespace RDBCli
 
         private void CountLargestEntries(Record record, int num)
         {   
+            record.Key = CommonHelper.GetShortKey(record.Key);
+
             if (record.FieldOfLargestElem!=null && record.FieldOfLargestElem.Length >= 4096) {
                 record.FieldOfLargestElem = record.FieldOfLargestElem.Substring(0, 4096);
             }
