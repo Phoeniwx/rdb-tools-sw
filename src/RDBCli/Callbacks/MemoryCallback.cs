@@ -42,6 +42,7 @@ namespace RDBCli.Callbacks
             else if (keyStr.Equals("ctime"))
             {
                 _rdbDataInfo.CTime = RedisRdbObjectHelper.ConvertBytesToInteger(value);
+                System.Console.WriteLine(_rdbDataInfo.CTime.ToString());
             }
         }
 
