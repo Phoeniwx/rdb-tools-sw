@@ -70,7 +70,7 @@ function formatExpiry(time) {
     } 
 };
 function formatTime(timestamp) { 
-    let date = new Date(timestamp); let year = date.getFullYear(); let month = date.getMonth() + 1; 
+    let date = new Date(timestamp*1000); let year = date.getFullYear(); let month = date.getMonth() + 1; 
     let day = date.getDate(); let hour = date.getHours(); let min = date.getMinutes(); let second = date.getSeconds(); 
     return year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + second 
 }

@@ -57,7 +57,7 @@ namespace RDBCli.Callbacks
                 
                 if (value.Length==4) {
                     var ctime = System.BitConverter.ToInt32(value);
-                    _rdbDataInfo.CTime = ((long) ctime) * 1000;
+                    _rdbDataInfo.CTime = ((long) ctime);
                 }
                 // var time = System.Text.Encoding.UTF8.GetString(value);
                 // if (long.TryParse(time, out var ctime))
